@@ -6,7 +6,6 @@
 /.pnp
 .pnp.js
 .secrets
-/ansible
 
 # testing
 /coverage

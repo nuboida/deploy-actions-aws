@@ -1,0 +1,6 @@
+- name: Ping server
+  hosts: aws_ec2
+  gather_facts: no
+  tasks:
+    - name: Ping the server
+      ansible.builtin.ping:

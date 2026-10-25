@@ -27,5 +27,17 @@ jobs:
                 aws-region: ${{ env.AWS_REGION }}
                 role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT }}:role/${{ env.AWS_ROLEID }}
                 role-session-name: AWSGithubdeploy
+
+            # - name: Generate Ansible inventory
+            #   run: |
+            #     printf 'plugin: amazon.aws.aws_ec2\nregions:\n  - us-east-2\n  - us-west-1\nkeyed_group:\n  - key: tags.Ansible\nleading_separator: \"\"' > $RUNNER_TEMP/aws_ec2.yaml
             
-            - run: aws sts get-caller-identity
+            - name: Install Ansible
+              run: |
+                sudo apt update
+                sudo apt install -y ansible
+
+            - name: Run Ansible playbook
+              run: cat "$RUNNER_TEMP/aws_ec2.yaml"
+            - run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/test_aws_config.yaml
+                

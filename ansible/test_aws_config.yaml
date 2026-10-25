@@ -1,0 +1,13 @@
+- name: Test AWS Configuration
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: List EC2 instances
+      amazon.aws.ec2_instance_info:
+        region: us-west-1
+      register: ec2_info
+
+    - name: Display EC2 instances
+      debug:
+        var: ec2_info
