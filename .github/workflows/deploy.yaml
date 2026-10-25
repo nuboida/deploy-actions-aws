@@ -27,3 +27,5 @@ jobs:
                 aws-region: ${{ env.AWS_REGION }}
                 role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT }}:role/${{ env.AWS_ROLEID }}
                 role-session-name: AWSGithubdeploy
+            
+            - run: aws ec2 describe-instances
