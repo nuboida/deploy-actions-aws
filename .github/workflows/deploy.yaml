@@ -36,6 +36,7 @@ jobs:
               run: |
                 sudo apt update
                 sudo apt install -y ansible
+                sudo apt install boto3
 
             - name: Run Ansible playbook
               run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/test_aws_config.yaml
