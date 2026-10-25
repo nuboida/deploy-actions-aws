@@ -40,5 +40,5 @@ jobs:
                 ansible-galaxy collection install amazon.aws
 
             - name: Run Ansible playbook
-              run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/test_aws_config.yaml
+              run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/ping.yaml
                 
