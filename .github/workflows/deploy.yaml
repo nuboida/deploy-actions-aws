@@ -38,6 +38,5 @@ jobs:
                 sudo apt install -y ansible
 
             - name: Run Ansible playbook
-              run: cat "$RUNNER_TEMP/aws_ec2.yaml"
-            - run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/test_aws_config.yaml
+              run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/test_aws_config.yaml
                 
