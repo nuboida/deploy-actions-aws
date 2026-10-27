@@ -6,6 +6,7 @@
 /.pnp
 .pnp.js
 .secrets
+/ansible/group_vars/all.yml
 
 # testing
 /coverage
@@ -23,3 +24,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+/ansible/aws_module_test/
+/ansible/dep
+/ansible/lookup.yaml
+/ansible/aws_ec2.yaml

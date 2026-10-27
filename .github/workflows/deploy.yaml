@@ -28,9 +28,13 @@ jobs:
                 role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT }}:role/${{ env.AWS_ROLEID }}
                 role-session-name: AWSGithubdeploy
 
-            # - name: Generate Ansible inventory
-            #   run: |
-            #     printf 'plugin: amazon.aws.aws_ec2\nregions:\n  - us-east-2\n  - us-west-1\nkeyed_group:\n  - key: tags.Ansible\nleading_separator: \"\"' > $RUNNER_TEMP/aws_ec2.yaml
+            - name: Generate temp ssh key
+              env:
+                host_ip: ${{ secrets.HOST_IP }}
+              run: |
+                mkdir -p ~/.ssh
+                ssh-keygen -t ed25519 -f /home/runner/.ssh/ed25519 -N ''
+                ssh-keyscan ${{ env.host_ip }} >> /home/runner/.ssh/known_hosts
             
             - name: Install Ansible
               run: |
@@ -40,5 +44,8 @@ jobs:
                 ansible-galaxy collection install amazon.aws
 
             - name: Run Ansible playbook
-              run: ansible-playbook -i "ansible/aws_ec2.yaml" ansible/ping.yaml
+              env:
+                AWS_REGION: ${{ secrets.AWS_REGION }}
+                EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+              run: ansible-playbook ansible/ping.yaml
                 

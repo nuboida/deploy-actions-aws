@@ -1,5 +1,20 @@
 # Getting Started with Create React App
 
+## Deploying with Ansible
+
+The GitHub Actions deployment targets the instance ID in the repository variable
+`EC2_INSTANCE_ID` and connects through AWS Systems Manager Session Manager, without
+SSH ingress. Configure the repository variable `ANSIBLE_AWS_SSM_BUCKET_NAME` with
+an S3 bucket in the instance's region for Ansible's file transfers.
+
+The instance must be managed by Systems Manager (including a working SSM Agent and
+an instance role with `AmazonSSMManagedInstanceCore`). The workflow's assumed IAM
+role needs permission to describe the instance, start, resume, and terminate SSM
+sessions, and to list the bucket and get, put, and delete objects in it. The
+instance and runner need network access to Systems Manager; the instance and runner
+also need network access to the S3 bucket. The workflow installs the Session
+Manager plugin on its runner.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
