@@ -1,6 +1,72 @@
-- name: Ping server
-  hosts: aws_ec2
-  gather_facts: no
+- name: Send SSH public key to EC2 instance using AWS EC2 Instance Connect
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    instance_id: "{{ lookup('ansible.builtin.env', 'EC2_INSTANCE_ID') }}"
+    aws_region: "{{ lookup('ansible.builtin.env', 'AWS_REGION') }}"
+    ssh_public_key_path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/ed25519.pub"
+    ssh_private_key_path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.ssh/ed25519"
+
   tasks:
-    - name: Ping the server
+    - name: Read SSH public key
+      ansible.builtin.slurp:
+        src: "{{ ssh_public_key_path }}"
+      register: pubkey_data
+
+    - name: Get EC2 instance availability zone
+      amazon.aws.ec2_instance_info:
+        instance_ids:
+          - "{{ instance_id }}"
+        region: "{{ aws_region }}"
+      register: ec2_info
+
+    - name: Ensure the EC2 instance exists
+      ansible.builtin.assert:
+        that:
+          - ec2_info.instances | length == 1
+        fail_msg: "Expected to find one EC2 instance with ID {{ instance_id }}"
+
+    - name: Send SSH public key to EC2 instance via EIC
+      ansible.builtin.command:
+        argv:
+          - aws
+          - ec2-instance-connect
+          - send-ssh-public-key
+          - --instance-id
+          - "{{ instance_id }}"
+          - --instance-os-user
+          - ec2-user
+          - --availability-zone
+          - "{{ ec2_info.instances[0].placement.availability_zone }}"
+          - --ssh-public-key
+          - "{{ pubkey_data['content'] | b64decode | trim }}"
+          - --region
+          - "{{ aws_region }}"
+      register: eic_result
+
+    - name: Verify EC2 Instance Connect accepted the public key
+      ansible.builtin.assert:
+        that:
+          - (eic_result.stdout | from_json).Success | bool
+        fail_msg: "EC2 Instance Connect did not accept the public key: {{ eic_result.stdout }}"
+
+    - name: Confirm SSH public key submission
+      ansible.builtin.debug:
+        msg: "SSH public key accepted for {{ instance_id }} as ec2-user. Connect within 60 seconds."
+
+    - name: Add EC2 instance to the SSH connectivity check
+      ansible.builtin.add_host:
+        name: eic_instance
+        groups: eic_targets
+        ansible_host: "{{ ec2_info.instances[0].public_ip_address }}"
+        ansible_user: ec2-user
+        ansible_ssh_private_key_file: "{{ ssh_private_key_path }}"
+        # ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+- name: Verify SSH connectivity to the EC2 instance
+  hosts: eic_targets
+  gather_facts: false
+  tasks:
+    - name: Ping the instance over SSH
       ansible.builtin.ping:
